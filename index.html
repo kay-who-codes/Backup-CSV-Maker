@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Data Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3d3d3d;
+        }
+
+        button.primary {
+            background-color: #4a90e2;
+            border-color: #4a90e2;
+        }
+
+        button.primary:hover {
+            background-color: #5a9ff2;
+        }
+
+        button.success {
+            background-color: #27ae60;
+            border-color: #27ae60;
+        }
+
+        button.success:hover {
+            background-color: #2ecc71;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .file-label:hover {
+            background-color: #3d3d3d;
+        }
+
+        .add-row-section {
+            background-color: #252525;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .add-row-section h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr repeat(4, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        input[type="text"] {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4a90e2;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            background-color: #252525;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: #2d2d2d;
+            font-weight: 600;
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background-color: #2a2a2a;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            button, .file-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Backup Data Manager</h1>
+
+        <div class="controls">
+            <label for="fileInput" class="file-label">📁 Load CSV</label>
+            <input type="file" id="fileInput" accept=".csv">
+            <button class="success" onclick="saveCSV()">💾 Save CSV</button>
+            <button onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+
+        <div class="add-row-section">
+            <h2>Add New Entry</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data Location</label>
+                    <input type="text" id="newLocation" placeholder="e.g., Documents/Photos">
+                </div>
+                <div class="form-group">
+                    <label>Backup A</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="newBackupA">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Backup B</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="newBackupB">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Backup C</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="newBackupC">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Cloud</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="newCloud">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="primary" onclick="addRow()">➕ Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Data Location</th>
+                        <th>Backup A</th>
+                        <th>Backup B</th>
+                        <th>Backup C</th>
+                        <th>Cloud</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="6" class="empty-state">No data yet. Add an entry or load a CSV file.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let backupData = [];
+
+        // Load CSV file
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // Reset file input
+        });
+
+        // Parse CSV content
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return;
+
+            // Skip header row
+            backupData = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length >= 5) {
+                    backupData.push({
+                        location: values[0],
+                        backupA: values[1].toLowerCase() === 'yes' || values[1].toLowerCase() === 'true',
+                        backupB: values[2].toLowerCase() === 'yes' || values[2].toLowerCase() === 'true',
+                        backupC: values[3].toLowerCase() === 'yes' || values[3].toLowerCase() === 'true',
+                        cloud: values[4].toLowerCase() === 'yes' || values[4].toLowerCase() === 'true'
+                    });
+                }
+            }
+            renderTable();
+        }
+
+        // Parse a single CSV line (handles quotes)
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        // Add new row
+        function addRow() {
+            const location = document.getElementById('newLocation').value.trim();
+            if (!location) {
+                alert('Please enter a data location');
+                return;
+            }
+
+            backupData.push({
+                location: location,
+                backupA: document.getElementById('newBackupA').checked,
+                backupB: document.getElementById('newBackupB').checked,
+                backupC: document.getElementById('newBackupC').checked,
+                cloud: document.getElementById('newCloud').checked
+            });
+
+            // Clear form
+            document.getElementById('newLocation').value = '';
+            document.getElementById('newBackupA').checked = false;
+            document.getElementById('newBackupB').checked = false;
+            document.getElementById('newBackupC').checked = false;
+            document.getElementById('newCloud').checked = false;
+
+            renderTable();
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            
+            if (backupData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No data yet. Add an entry or load a CSV file.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = backupData.map((item, index) => `
+                <tr>
+                    <td>${escapeHtml(item.location)}</td>
+                    <td><input type="checkbox" ${item.backupA ? 'checked' : ''} onchange="updateCheckbox(${index}, 'backupA', this.checked)"></td>
+                    <td><input type="checkbox" ${item.backupB ? 'checked' : ''} onchange="updateCheckbox(${index}, 'backupB', this.checked)"></td>
+                    <td><input type="checkbox" ${item.backupC ? 'checked' : ''} onchange="updateCheckbox(${index}, 'backupC', this.checked)"></td>
+                    <td><input type="checkbox" ${item.cloud ? 'checked' : ''} onchange="updateCheckbox(${index}, 'cloud', this.checked)"></td>
+                    <td class="actions">
+                        <button class="btn-small btn-danger" onclick="deleteRow(${index})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update checkbox value
+        function updateCheckbox(index, field, value) {
+            backupData[index][field] = value;
+        }
+
+        // Delete row
+        function deleteRow(index) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                backupData.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        // Clear all data
+        function clearAll() {
+            if (confirm('Are you sure you want to clear all data?')) {
+                backupData = [];
+                renderTable();
+            }
+        }
+
+        // Save as CSV
+        function saveCSV() {
+            if (backupData.length === 0) {
+                alert('No data to save');
+                return;
+            }
+
+            let csv = 'Data Location,Saved to Backup A?,Saved to Backup B?,Saved to Backup C?,Saved to Cloud?\n';
+            
+            backupData.forEach(item => {
+                const location = `"${item.location.replace(/"/g, '""')}"`;
+                csv += `${location},${item.backupA ? 'Yes' : 'No'},${item.backupB ? 'Yes' : 'No'},${item.backupC ? 'Yes' : 'No'},${item.cloud ? 'Yes' : 'No'}\n`;
+            });
+
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `backup_data_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Allow Enter key to add row
+        document.getElementById('newLocation').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addRow();
+            }
+        });
+    </script>
+</body>
+</html>
